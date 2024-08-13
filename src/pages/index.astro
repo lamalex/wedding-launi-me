@@ -5,7 +5,7 @@ import { ImageUploader } from "../components/image-uploader";
 
 <Layout title="Thank you for sharing this day with us">
     <main class="bg-white bg-opacity-60 sm:mx-72 mx-10 h-full">
-        <ImageUploader client:load />
+        <ImageUploader client:load client:only />
         <div class="text-4xl mt-28 w-full text-center hidden" id="message">
             Thank you!<br />❤️ <span class="font-thin"> Alex & Meghan </span>
         </div>
