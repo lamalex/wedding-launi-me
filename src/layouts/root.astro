@@ -1,6 +1,4 @@
 ---
-import UploadThingSSR from "../components/uploadthing-ssr.astro";
-
 interface Props {
     title: string;
 }
@@ -18,12 +16,9 @@ const { title } = Astro.props;
         <meta name="generator" content={Astro.generator} />
         <title>{title}</title>
     </head>
-    <UploadThingSSR />
     <body>
         <div class="w-screen h-screen bg-[url('/bouquet.webp')]">
             <slot />
         </div>
     </body>
-
-
 </html>
