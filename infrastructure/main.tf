@@ -31,7 +31,7 @@ resource "cloudflare_pages_project" "wedding-launi-me" {
       deployments_enabled           = true
       production_deployment_enabled = true
       preview_deployment_setting    = "custom"
-      preview_branch_includes       = ["dev", "preview"]
+      preview_branch_includes       = ["dev", "preview/*"]
       preview_branch_excludes       = ["main", "prod"]
     }
   }
