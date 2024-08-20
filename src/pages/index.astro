@@ -1,13 +1,10 @@
 ---
-import Layout from "../layouts/root.astro";
-import { ImageUploader } from "../components/image-uploader";
----
+export const prerender = false;
 
-<Layout title="Thank you for sharing this day with us">
-    <main class="bg-white bg-opacity-60 sm:mx-72 mx-10 h-full">
-        <ImageUploader client:load client:only />
-        <div class="text-4xl mt-28 w-full text-center hidden" id="message">
-            Thank you!<br />❤️ <span class="font-thin"> Alex & Meghan </span>
-        </div>
-    </main></Layout
->
+const user = Astro.locals.user;
+if (user === null) {
+    return Astro.redirect("/login");
+} else {
+    return Astro.redirect("/upload");
+}
+---

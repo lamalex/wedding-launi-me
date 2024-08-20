@@ -18,7 +18,9 @@ const { title } = Astro.props;
     </head>
     <body>
         <div class="w-screen h-screen bg-[url('/bouquet.webp')]">
-            <slot />
+            <main class="bg-white bg-opacity-60 sm:mx-72 mx-10 h-full">
+                <slot />
+            </main>
         </div>
     </body>
 </html>

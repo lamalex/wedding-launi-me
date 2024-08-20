@@ -17,8 +17,8 @@ mode = "smart"
 # - https://developers.cloudflare.com/pages/functions/bindings/#environment-variables
 # Note: Use secrets to store sensitive data.
 # - https://developers.cloudflare.com/pages/functions/bindings/#secrets
-[vars]
-UPLOADTHING_APP_ID = "f5zzoaqheq"
+# [vars]
+
 
 # Bind the Workers AI model catalog. Run machine learning models, powered by serverless GPUs, on Cloudflare’s global network
 # Docs: https://developers.cloudflare.com/pages/functions/bindings/#workers-ai
@@ -70,18 +70,15 @@ UPLOADTHING_APP_ID = "f5zzoaqheq"
 
 ######## PREVIEW environment config ########
 
-# [env.preview.vars]
-# API_KEY = "xyz789"
+[[env.preview.d1_databases]]
+binding = "WEDDING_DB"
+database_name = "wedding-launi-me-preview"
+database_id = "1b6c65fc-3b2d-40d4-afb2-afa5943ba801"
 
-# [[env.preview.kv_namespaces]]
-# binding = "MY_KV_NAMESPACE"
-# id = "<PREVIEW_NAMESPACE_ID>"
 
 ######## PRODUCTION environment config ########
 
-# [env.production.vars]
-
-
-# [[env.production.kv_namespaces]]
-# binding = "MY_KV_NAMESPACE"
-# id = "<PRODUCTION_NAMESPACE_ID>"
+[[d1_databases]]
+binding = "WEDDING_DB"
+database_name = "wedding-launi-me-production"
+database_id = "77b33bc0-b9a1-47f3-a7a9-2117d3eeba7c"

@@ -1,0 +1,18 @@
+---
+export const prerender = false;
+
+import Layout from "../layouts/root.astro";
+import { ImageUploader } from "../components/image-uploader";
+
+const user = Astro.locals.user;
+if (user === null) {
+    return Astro.redirect("/login");
+}
+---
+
+<Layout title="And for sharing your pictures with us">
+    <ImageUploader client:load client:only="react" />
+    <div class="text-4xl mt-28 w-full text-center hidden" id="message">
+        Thank you!<br />❤️ <span class="font-thin"> Alex & Meghan </span>
+    </div>
+</Layout>

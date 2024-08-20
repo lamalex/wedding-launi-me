@@ -1,3 +1,5 @@
+export const prerender = false;
+
 import { createRouteHandler } from "uploadthing/server";
 import { ourFileRouter } from "../../server/uploadthing";
 
