@@ -51,7 +51,6 @@ resource "cloudflare_pages_project" "wedding-launi-me" {
       environment_variables = {
         ENVIRONMENT        = "preview"
         UPLOADTHING_APP_ID = "0lvautmi1u"
-        BUN_VERSION        = "v1.1.24"
       }
       secrets = {
         UPLOADTHING_SECRET = var.uploadthing_secret_preview
@@ -69,7 +68,6 @@ resource "cloudflare_pages_project" "wedding-launi-me" {
       usage_model = "standard"
       environment_variables = {
         ENVIRONMENT        = "production"
-        BUN_VERSION        = "v1.1.24"
         UPLOADTHING_APP_ID = "f5zzoaqheq"
 
       }
