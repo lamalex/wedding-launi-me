@@ -12,9 +12,6 @@ compatibility_flags = ["nodejs_compat"]
 [placement]
 mode = "smart"
 
-[vars]
-BUN_VERSION = "1.1.24"
-
 
 # Variable bindings. These are arbitrary, plaintext strings (similar to environment variables)
 # Docs:
@@ -73,6 +70,9 @@ BUN_VERSION = "1.1.24"
 # Docs: https://developers.cloudflare.com/pages/functions/wrangler-configuration#environment-specific-overrides
 
 ######## PREVIEW environment config ########
+
+[env.preview.vars]
+BUN_VERSION = "1.1.24"
 
 [[env.preview.d1_databases]]
 binding = "WEDDING_DB"
