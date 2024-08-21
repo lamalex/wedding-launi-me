@@ -1,4 +1,4 @@
-import { createUploadthing, type FileRouter } from "uploadthing/server";
+import { createUploadthing, UTApi, type FileRouter } from "uploadthing/server";
 
 const f = createUploadthing();
 
@@ -29,5 +29,7 @@ export const ourFileRouter = {
       return { uploadedBy: metadata.userId };
     }),
 } satisfies FileRouter;
+
+export const utapi = new UTApi();
 
 export type OurFileRouter = typeof ourFileRouter;

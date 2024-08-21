@@ -1,0 +1,62 @@
+---
+export const prerender = false;
+
+import Layout from "../layouts/root.astro";
+import { ViewTransitions } from "astro:transitions";
+import { utapi } from "../server/uploadthing.ts";
+import { UPLOADTHING_APP_ID } from "astro:env/server";
+
+const files = await utapi.listFiles();
+
+const user = Astro.locals.user;
+if (user === null) {
+    return Astro.redirect("/login");
+}
+---
+
+<Layout title="Enjoy!"
+    ><ViewTransitions />
+    <div
+        id="my-gallery"
+        class="grid grid-cols-1 py-10 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+    >
+        {
+            files.files.map((file) => (
+                <a
+                    href={`https://utfs.io/a/${UPLOADTHING_APP_ID}/${file.key}`}
+                    data-pswp-width="900"
+                    data-pswp-height="1600"
+                    class="contents"
+                >
+                    <img
+                        width="900"
+                        height="1600"
+                        loading="lazy"
+                        decoding="async"
+                        src={`https://utfs.io/a/${UPLOADTHING_APP_ID}/${file.key}`}
+                        class="absolute h-[250px] w-[300px] object-cover shadow"
+                    />
+                </a>
+            ))
+        }
+    </div>
+    <script>
+        import "photoswipe/style.css";
+        import pswpModule from "photoswipe";
+        import PhotoSwipeLightbox from "photoswipe/lightbox";
+
+        const lightbox = new PhotoSwipeLightbox({
+            pswpModule,
+            children: "a",
+            gallery: "#my-gallery",
+        });
+
+        document.addEventListener(
+            "astro:page-load",
+            () => {
+                if (lightbox) lightbox.init();
+            },
+            { once: false },
+        );
+    </script>
+</Layout>

@@ -6,7 +6,6 @@ import { ImageUploader } from "../components/image-uploader";
 
 const user = Astro.locals.user;
 if (user === null) {
-    console.log("NO USER SENDING TO LOGIN");
     return Astro.redirect("/login");
 }
 ---

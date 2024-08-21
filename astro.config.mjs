@@ -30,6 +30,10 @@ export default defineConfig({
           context: "server",
           access: "secret",
         }),
+        UPLOADTHING_APP_ID: envField.string({
+          context: "server",
+          access: "public",
+        }),
       },
     },
   },
