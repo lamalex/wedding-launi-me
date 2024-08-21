@@ -1,4 +1,5 @@
 import { createUploadthing, UTApi, type FileRouter } from "uploadthing/server";
+import { UPLOADTHING_SECRET } from "astro:env/server";
 
 const f = createUploadthing();
 
@@ -30,6 +31,8 @@ export const ourFileRouter = {
     }),
 } satisfies FileRouter;
 
-export const utapi = new UTApi();
+export const utapi = new UTApi({
+  apiKey: UPLOADTHING_SECRET,
+});
 
 export type OurFileRouter = typeof ourFileRouter;

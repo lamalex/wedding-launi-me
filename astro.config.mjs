@@ -34,6 +34,10 @@ export default defineConfig({
           context: "server",
           access: "public",
         }),
+        UPLOADTHING_SECRET: envField.string({
+          context: "server",
+          access: "secret",
+        }),
       },
     },
   },
