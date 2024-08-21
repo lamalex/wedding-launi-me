@@ -1,6 +1,7 @@
 import { Lucia } from "lucia";
 import { D1Adapter } from "@lucia-auth/adapter-sqlite";
 import { loginItems } from "../loginStore";
+import { TEXTBELT_API_KEY } from "astro:env/server";
 
 export class PhoneNumber {
   private _value: string;
@@ -31,7 +32,7 @@ export async function sendOtp(
         phone: phone.value(),
         userid: phone.value(),
         message: message,
-        key: "example_otp_key",
+        key: TEXTBELT_API_KEY,
         length: 6,
       }),
     });

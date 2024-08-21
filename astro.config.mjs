@@ -1,4 +1,4 @@
-import { defineConfig } from "astro/config";
+import { defineConfig, envField } from "astro/config";
 import react from "@astrojs/react";
 import tailwind from "@astrojs/tailwind";
 import cloudflare from "@astrojs/cloudflare";
@@ -16,5 +16,16 @@ export default defineConfig({
   }),
   security: {
     checkOrigin: true,
+  },
+  experimental: {
+    serverIslands: true,
+    env: {
+      schema: {
+        TEXTBELT_API_KEY: envField.string({
+          context: "server",
+          access: "secret",
+        }),
+      },
+    },
   },
 });

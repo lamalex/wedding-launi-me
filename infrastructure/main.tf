@@ -51,9 +51,11 @@ resource "cloudflare_pages_project" "wedding-launi-me" {
       environment_variables = {
         ENVIRONMENT        = "preview"
         UPLOADTHING_APP_ID = "0lvautmi1u"
+        BUN_VERSION        = "1.1.24"
       }
       secrets = {
         UPLOADTHING_SECRET = var.uploadthing_secret_preview
+        TEXTBELT_API_KEY   = var.textbelt_api_key
       }
       d1_databases = {
         WEDDING_DB = cloudflare_d1_database.wedding-launi-me["preview"].id
@@ -69,10 +71,11 @@ resource "cloudflare_pages_project" "wedding-launi-me" {
       environment_variables = {
         ENVIRONMENT        = "production"
         UPLOADTHING_APP_ID = "f5zzoaqheq"
-
+        BUN_VERSION        = "1.1.24"
       }
       secrets = {
         UPLOADTHING_SECRET = var.uploadthing_secret_production
+        TEXTBELT_API_KEY   = var.textbelt_api_key
       }
       d1_databases = {
         WEDDING_DB = cloudflare_d1_database.wedding-launi-me["production"].id
