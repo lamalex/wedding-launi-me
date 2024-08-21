@@ -20,6 +20,18 @@ export class PhoneNumber {
   }
 }
 
+export class Otp {
+  private _value: string;
+
+  constructor(value: string) {
+    this._value = value;
+  }
+
+  public value(): string {
+    return this._value;
+  }
+}
+
 export async function sendOtp(
   phone: PhoneNumber,
   message: string = "Hi! This is Alex & Meghan! Your login code is $OTP",
@@ -44,8 +56,6 @@ export async function sendOtp(
       error?: string;
     }>();
 
-    body.error = undefined;
-    body.otp = "696969";
     return { phoneNumber: phone, enteredOtp: body.otp, error: body.error };
   } catch (err) {
     let message = "There was an error sending the OTP";
@@ -58,35 +68,34 @@ export async function sendOtp(
   }
 }
 
-export async function verifyOtp(otp: string, phone: string) {
+export async function verifyOtp(otp: Otp, phone: PhoneNumber) {
   try {
     console.log(`otp ${otp} phone ${phone}`);
 
     const params = new URLSearchParams({
-      user_entered_code: otp,
-      userid: phone,
-      key: "example_otp_key",
+      otp: otp.value(),
+      userid: phone.value(),
+      key: TEXTBELT_API_KEY,
     });
+
     const res = await fetch(
       `https://textbelt.com/otp/verify?${params.toString()}`,
     );
 
     const body = await res.json<{
       success: boolean;
-      isOtpValid: boolean;
+      isValidOtp: boolean;
       message?: string;
     }>();
-    console.log(body);
-
-    loginItems.set({
-      login: {
-        phoneNumber: new PhoneNumber(phone),
-        error: body.success ? null : body.message || "Something went wrong",
-      },
-    });
 
     return {
-      success: true, //body.success && body.isOtpValid,
+      success: body.isValidOtp,
+      error:
+        body.success && body.isValidOtp
+          ? null
+          : body.isValidOtp
+            ? body.message
+            : "Code did not match",
     };
   } catch (err) {
     return {

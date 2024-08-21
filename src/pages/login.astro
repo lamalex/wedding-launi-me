@@ -4,7 +4,7 @@ import { drizzle } from "drizzle-orm/d1";
 import { userTable } from "../server/db/schema";
 import { initializeLucia } from "../server/auth";
 import Layout from "../layouts/root.astro";
-import { PhoneNumber, sendOtp, verifyOtp } from "../server/auth";
+import { PhoneNumber, Otp, sendOtp, verifyOtp } from "../server/auth";
 import { InputOtp } from "../components/otp";
 import { loginItems } from "../loginStore";
 
@@ -58,11 +58,12 @@ if (Astro.request.method === "POST") {
                     errors.otp = "Yikes, you entered an empty code";
                 } else {
                     try {
-                        const phone = loginStore.phoneNumber.value();
-                        const res = await verifyOtp(phone, otpRaw);
+                        const phone = loginStore.phoneNumber;
+                        const res = await verifyOtp(new Otp(otpRaw), phone);
                         if (res.success) {
+                            console.log("HUZZAH!");
                             const known = await db.query.user.findFirst({
-                                where: eq(userTable.phoneNumber, phone),
+                                where: eq(userTable.phoneNumber, phone.value()),
                             });
 
                             if (!known) {
