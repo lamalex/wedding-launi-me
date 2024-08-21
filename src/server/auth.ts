@@ -42,12 +42,18 @@ export async function sendOtp(
       otp: string;
       error?: string;
     }>();
-    body.error = null;
+
+    body.error = undefined;
     body.otp = "696969";
     return { phoneNumber: phone, enteredOtp: body.otp, error: body.error };
   } catch (err) {
-    console.error(err);
-    return { phoneNumber: phone, error: err.message };
+    let message = "There was an error sending the OTP";
+    if (err instanceof Error) {
+      console.error(err);
+      message = err.message;
+    }
+
+    return { phoneNumber: phone, error: message };
   }
 }
 

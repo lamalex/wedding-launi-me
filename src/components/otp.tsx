@@ -5,7 +5,7 @@ import { twMerge } from "tailwind-merge";
 import type { ClassValue } from "clsx";
 import { useRef } from "react";
 
-export function InputOtp(props: { phone: string }) {
+export function InputOtp() {
   const formRef = useRef<HTMLFormElement>(null);
 
   return (

@@ -52,54 +52,56 @@ if (Astro.request.method === "POST") {
             }
         } else if (formStep === "otp") {
             const otpSubmitted = data.get("step")?.toString();
-            const otpRaw = data.get("otp")?.toString();
-            if (otpSubmitted === "otp" && !otpRaw) {
-                errors.otp = "Yikes, you entered an empty code";
-            } else {
-                try {
-                    const phone = loginStore.phoneNumber.value();
-                    const res = await verifyOtp(phone, otpRaw);
-                    if (res.success) {
-                        const known = await db.query.user.findFirst({
-                            where: eq(userTable.phoneNumber, phone),
-                        });
+            if (otpSubmitted) {
+                const otpRaw = data.get("otp")?.toString();
+                if (!otpRaw) {
+                    errors.otp = "Yikes, you entered an empty code";
+                } else {
+                    try {
+                        const phone = loginStore.phoneNumber.value();
+                        const res = await verifyOtp(phone, otpRaw);
+                        if (res.success) {
+                            const known = await db.query.user.findFirst({
+                                where: eq(userTable.phoneNumber, phone),
+                            });
 
-                        if (!known) {
-                            errors.otp =
-                                "We don't recognize your number! Reach out to Alex or Meghan to get added to the list!";
+                            if (!known) {
+                                errors.otp =
+                                    "We don't recognize your number! Reach out to Alex or Meghan to get added to the list!";
+                            } else {
+                                const lucia = initializeLucia(
+                                    Astro.locals.runtime.env.WEDDING_DB,
+                                );
+                                const session = await lucia.createSession(
+                                    `${known.id}`,
+                                    {
+                                        expires_at:
+                                            new Date().getTime() +
+                                            1000 * 60 * 60 * 24 * 7,
+                                    },
+                                );
+                                const sessionCookie = lucia.createSessionCookie(
+                                    session.id,
+                                );
+                                Astro.cookies.set(
+                                    sessionCookie.name,
+                                    sessionCookie.value,
+                                    sessionCookie.attributes,
+                                );
+                                const { user } = await lucia.validateSession(
+                                    session.id,
+                                );
+                                Astro.locals.user = user;
+                                return Astro.redirect("/upload");
+                            }
                         } else {
-                            const lucia = initializeLucia(
-                                Astro.locals.runtime.env.WEDDING_DB,
-                            );
-                            const session = await lucia.createSession(
-                                `${known.id}`,
-                                {
-                                    expires_at:
-                                        new Date().getTime() +
-                                        1000 * 60 * 60 * 24 * 7,
-                                },
-                            );
-                            const sessionCookie = lucia.createSessionCookie(
-                                session.id,
-                            );
-                            Astro.cookies.set(
-                                sessionCookie.name,
-                                sessionCookie.value,
-                                sessionCookie.attributes,
-                            );
-                            const { user } = await lucia.validateSession(
-                                session.id,
-                            );
-                            Astro.locals.user = user;
-                            return Astro.redirect("/upload");
+                            errors.otp = res.error ?? "Something went wrong";
                         }
-                    } else {
-                        errors.otp = res.error ?? "Something went wrong";
-                    }
-                } catch (err) {
-                    if (err instanceof Error) {
-                        errors.otp = err.message;
-                        console.error(err.message);
+                    } catch (err) {
+                        if (err instanceof Error) {
+                            errors.otp = err.message;
+                            console.error(err.message);
+                        }
                     }
                 }
             }
@@ -175,10 +177,7 @@ if (Astro.request.method === "POST") {
     {
         formStep === "otp" && (
             <div class="max-w-sm mx-auto py-20">
-                <InputOtp
-                    phone={loginItems.get()["login"]?.phoneNumber?.value()}
-                    client:load
-                />
+                <InputOtp client:load />
 
                 {(errors.otp || loginItems.get()["login"]?.error) && (
                     <p
