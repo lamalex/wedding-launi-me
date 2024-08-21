@@ -33,6 +33,10 @@ export const ourFileRouter = {
 
 export const utapi = new UTApi({
   apiKey: UPLOADTHING_SECRET,
+  fetch: (url, init) => {
+    if (init && "cache" in init) delete init.cache;
+    return fetch(url, init);
+  },
 });
 
 export type OurFileRouter = typeof ourFileRouter;
