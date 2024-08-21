@@ -17,6 +17,11 @@ export default defineConfig({
   security: {
     checkOrigin: true,
   },
+  vite: {
+    define: {
+      "process.env": process.env,
+    },
+  },
   experimental: {
     serverIslands: true,
     env: {
