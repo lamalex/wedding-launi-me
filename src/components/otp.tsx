@@ -3,24 +3,34 @@ import type { SlotProps } from "input-otp";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import type { ClassValue } from "clsx";
-import { verifyOtp } from "../server/auth";
+import { useRef } from "react";
 
-export function InputOtp() {
+export function InputOtp(props: { phone: string }) {
+  const formRef = useRef<HTMLFormElement>(null);
+
   return (
-    <OTPInput
-      onComplete={verifyOtp}
-      maxLength={6}
-      containerClassName="group flex items-center has-[:disabled]:opacity-30"
-      render={({ slots }) => (
-        <>
-          <div className="flex">
-            {slots.slice(0, 6).map((slot, idx) => (
-              <Slot key={idx} {...slot} />
-            ))}
-          </div>
-        </>
-      )}
-    />
+    <form method="POST" ref={formRef}>
+      <div>
+        <p className="text-bold">Enter your code</p>
+        <input type="hidden" name="step" value="otp" />
+        <OTPInput
+          id="otp"
+          name="otp"
+          onComplete={() => formRef.current?.submit()}
+          maxLength={6}
+          containerClassName="group flex items-center has-[:disabled]:opacity-30"
+          render={({ slots }) => (
+            <>
+              <div className="flex">
+                {slots.slice(0, 6).map((slot, idx) => (
+                  <Slot key={idx} {...slot} />
+                ))}
+              </div>
+            </>
+          )}
+        />
+      </div>
+    </form>
   );
 }
 
@@ -32,37 +42,16 @@ function Slot(props: SlotProps) {
         "relative w-10 h-14 text-[2rem]",
         "flex items-center justify-center",
         "transition-all duration-300",
-        "border-border border-y border-r first:border-l first:rounded-l-md last:rounded-r-md",
+        "text-pink-200 border-border border-y border-r first:border-l first:rounded-l-md last:rounded-r-md",
         "group-hover:border-accent-foreground/20 group-focus-within:border-accent-foreground/20",
         "outline outline-0 outline-accent-foreground/20",
-        { "outline-4 outline-accent-foreground": props.isActive },
+        { "outline-3 outline-accent-foreground": props.isActive },
       )}
     >
       {props.char !== null && <div>{props.char}</div>}
-      {props.hasFakeCaret && <FakeCaret />}
     </div>
   );
 }
-
-// You can emulate a fake textbox caret!
-function FakeCaret() {
-  return (
-    <div className="absolute pointer-events-none inset-0 flex items-center justify-center animate-caret-blink">
-      <div className="w-px h-8 bg-white" />
-    </div>
-  );
-}
-
-// Inspired by Stripe's MFA input.
-function FakeDash() {
-  return (
-    <div className="flex w-10 justify-center items-center">
-      <div className="w-3 h-1 rounded-full bg-border" />
-    </div>
-  );
-}
-
-// Small utility to merge class names.
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

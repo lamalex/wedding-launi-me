@@ -2,41 +2,115 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { userTable } from "../server/db/schema";
-
+import { initializeLucia } from "../server/auth";
 import Layout from "../layouts/root.astro";
-import { PhoneNumber } from "../server/auth";
+import { PhoneNumber, sendOtp, verifyOtp } from "../server/auth";
 import { InputOtp } from "../components/otp";
+import { loginItems } from "../loginStore";
 
 export const prerender = false;
 
-const errors = { phone: "" };
+const errors = { phone: "", otp: "" };
+const loginStore = loginItems.get()["login"];
+let formStep = loginStore?.phoneNumber?.value() ? "otp" : "phone";
+
 if (Astro.request.method === "POST") {
     try {
         const data = await Astro.request.formData();
-        const phoneRaw = data.get("phone")?.toString();
-        if (!phoneRaw) {
-            errors.phone =
-                "You entered a jacked up phone number. Please enter a better phone number!";
-        } else {
-            const phone = new PhoneNumber(phoneRaw);
+        const db = drizzle(Astro.locals.runtime.env.WEDDING_DB, {
+            schema: { user: userTable },
+        });
 
-            const db = drizzle(Astro.locals.runtime.env.WEDDING_DB, {
-                schema: { user: userTable },
-            });
-
-            const known = await db.query.user.findFirst({
-                where: eq(userTable.phoneNumber, phone.value()),
-            });
-
-            if (!known) {
+        if (formStep === "phone") {
+            const phoneRaw = data.get("phone")?.toString();
+            if (!phoneRaw) {
                 errors.phone =
-                    "We don't recognize your number! Reach out to Alex or Meghan to get added to the list!";
+                    "You entered a jacked up phone number. Please enter a better phone number!";
+            } else {
+                const phone = new PhoneNumber(phoneRaw);
+
+                const known = await db.query.user.findFirst({
+                    where: eq(userTable.phoneNumber, phone.value()),
+                });
+
+                if (!known) {
+                    errors.phone =
+                        "We don't recognize your number! Reach out to Alex or Meghan to get added to the list!";
+                } else {
+                    loginItems.set({ login: { phoneNumber: phone } });
+                    try {
+                        const res = await sendOtp(phone);
+                        loginItems.set({ login: res });
+                        formStep = "otp";
+                    } catch (error) {
+                        if (error instanceof Error) {
+                            errors.phone = error.message;
+                            console.error(error.message);
+                        }
+                    }
+                }
             }
-            // await sendOtp(phone);
+        } else if (formStep === "otp") {
+            const otpSubmitted = data.get("step")?.toString();
+            const otpRaw = data.get("otp")?.toString();
+            if (otpSubmitted === "otp" && !otpRaw) {
+                errors.otp = "Yikes, you entered an empty code";
+            } else {
+                try {
+                    const phone = loginStore.phoneNumber.value();
+                    const res = await verifyOtp(phone, otpRaw);
+                    if (res.success) {
+                        const known = await db.query.user.findFirst({
+                            where: eq(userTable.phoneNumber, phone),
+                        });
+
+                        if (!known) {
+                            errors.otp =
+                                "We don't recognize your number! Reach out to Alex or Meghan to get added to the list!";
+                        } else {
+                            const lucia = initializeLucia(
+                                Astro.locals.runtime.env.WEDDING_DB,
+                            );
+                            const session = await lucia.createSession(
+                                `${known.id}`,
+                                {
+                                    expires_at:
+                                        new Date().getTime() +
+                                        1000 * 60 * 60 * 24 * 7,
+                                },
+                            );
+                            const sessionCookie = lucia.createSessionCookie(
+                                session.id,
+                            );
+                            Astro.cookies.set(
+                                sessionCookie.name,
+                                sessionCookie.value,
+                                sessionCookie.attributes,
+                            );
+                            const { user } = await lucia.validateSession(
+                                session.id,
+                            );
+                            Astro.locals.user = user;
+                            return Astro.redirect("/upload");
+                        }
+                    } else {
+                        errors.otp = res.error ?? "Something went wrong";
+                    }
+                } catch (err) {
+                    if (err instanceof Error) {
+                        errors.otp = err.message;
+                        console.error(err.message);
+                    }
+                }
+            }
         }
     } catch (error) {
         if (error instanceof Error) {
-            errors.phone = error.message;
+            if (formStep === "phone") {
+                errors.phone = error.message;
+            } else {
+                errors.otp = error.message;
+            }
             console.error(error.message);
         }
     }
@@ -44,49 +118,78 @@ if (Astro.request.method === "POST") {
 ---
 
 <Layout title="Thank you for sharing this day with us">
-    <form method="POST" class="max-w-sm mx-auto py-20">
-        <div class="flex items-center">
-            <label
-                for="phone-input"
-                class="mb-2 text-sm font-medium text-gray-900 sr-only"
-                >Phone number:</label
-            >
-            <div class="relative w-full">
-                <input
-                    autocomplete="tel-national"
-                    type="tel"
-                    id="phone-input"
-                    name="phone"
-                    aria-describedby="helper-text-explanation"
-                    class="block p-2.5 w-full z-20 text-sm text-gray-900 bg-gray-50 rounded-lg border-s-0 border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                    pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
-                    placeholder="123-456-7890"
-                    required
+    {
+        formStep === "phone" && (
+            <form method="POST" class="max-w-sm mx-auto py-20">
+                <div>
+                    <div class="flex items-center">
+                        <label
+                            for="phone-input"
+                            class="mb-2 text-sm font-medium text-gray-900 sr-only"
+                        >
+                            Phone number:
+                        </label>
+                        <div class="relative w-full">
+                            <input type="hidden" name="step" value="phone" />
+                            <input
+                                autocomplete="tel-national"
+                                type="tel"
+                                id="phone-input"
+                                name="phone"
+                                aria-describedby="helper-text-explanation"
+                                class="block p-2.5 w-full z-20 text-sm text-gray-900 bg-gray-50 rounded-lg border-s-0 border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                                pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
+                                placeholder="123-456-7890"
+                                required
+                            />
+                        </div>
+                    </div>
+                    {(errors.phone || loginItems.get()["login"]?.error) && (
+                        <p
+                            id="error-text-explanation"
+                            class="mt-2 mb-4 text-sm text-red-800 font-bold"
+                        >
+                            Uh-oh!{" "}
+                            {errors.phone ||
+                                loginItems.get()["login"]?.error ||
+                                ""}
+                        </p>
+                    )}
+                    <p
+                        id="helper-text-explanation"
+                        class="mt-2 mb-4 text-sm text-gray-500 dark:text-gray-700"
+                    >
+                        We will send you a text message with a verification
+                        code.
+                    </p>
+                    <button
+                        type="submit"
+                        class="text-white w-full bg-pink-200 hover:bg-pink-300 focus:ring-4 focus:ring-pink-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 focus:outline-none"
+                    >
+                        Text a login code
+                    </button>
+                </div>
+            </form>
+        )
+    }
+    {
+        formStep === "otp" && (
+            <div class="max-w-sm mx-auto py-20">
+                <InputOtp
+                    phone={loginItems.get()["login"]?.phoneNumber?.value()}
+                    client:load
                 />
-            </div>
-        </div>
 
-        {
-            errors.phone && (
-                <p
-                    id="error-text-explanation"
-                    class="mt-2 mb-4 text-sm text-red-800 font-bold"
-                >
-                    Uh-oh! {errors.phone}
-                </p>
-            )
-        }
-        <p
-            id="helper-text-explanation"
-            class="mt-2 mb-4 text-sm text-gray-500 dark:text-gray-700"
-        >
-            We will send you a text message with a verification code.
-        </p>
-        <button
-            type="submit"
-            class="text-white w-full bg-pink-200 hover:bg-pink-300 focus:ring-4 focus:ring-pink-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 focus:outline-none"
-            >Text a login code</button
-        >
-        <InputOtp client:load />
-    </form>
+                {(errors.otp || loginItems.get()["login"]?.error) && (
+                    <p
+                        id="error-text-explanation"
+                        class="mt-2 mb-4 text-sm text-red-800 font-bold"
+                    >
+                        Uh-oh!{" "}
+                        {errors.otp || loginItems.get()["login"]?.error || ""}
+                    </p>
+                )}
+            </div>
+        )
+    }
 </Layout>
