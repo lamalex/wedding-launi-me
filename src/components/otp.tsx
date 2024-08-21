@@ -9,7 +9,7 @@ export function InputOtp() {
   const formRef = useRef<HTMLFormElement>(null);
 
   return (
-    <form method="POST" ref={formRef}>
+    <form action="/login" method="POST" ref={formRef}>
       <div>
         <p className="text-bold">Enter your code</p>
         <input type="hidden" name="step" value="otp" />

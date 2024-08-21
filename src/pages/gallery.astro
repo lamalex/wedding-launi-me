@@ -7,11 +7,6 @@ import { utapi } from "../server/uploadthing.ts";
 import { UPLOADTHING_APP_ID } from "astro:env/server";
 
 const files = await utapi.listFiles();
-
-const user = Astro.locals.user;
-if (user === null) {
-    return Astro.redirect("/login");
-}
 ---
 
 <Layout title="Enjoy!"

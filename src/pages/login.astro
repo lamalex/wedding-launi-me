@@ -123,7 +123,7 @@ if (Astro.request.method === "POST") {
 <Layout title="Thank you for sharing this day with us">
     {
         formStep === "phone" && (
-            <form method="POST" class="max-w-sm mx-auto py-20">
+            <form action="/login" method="POST" class="max-w-sm mx-auto py-20">
                 <div>
                     <div class="flex items-center">
                         <label
