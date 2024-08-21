@@ -58,6 +58,8 @@ mode = "smart"
 
 [env.preview.vars]
 BUN_VERSION = "1.1.24"
+ENVIRONMENT = "preview"
+UPLOADTHING_APP_ID = "0lvautmi1u"
 
 [[env.preview.d1_databases]]
 binding = "WEDDING_DB"
@@ -68,6 +70,8 @@ database_id = "1b6c65fc-3b2d-40d4-afb2-afa5943ba801"
 ######## PRODUCTION environment config ########
 [env.production.vars]
 BUN_VERSION = "1.1.24"
+ENVIRONMENT = "production"
+UPLOADTHING_APP_ID = "f5zzoaqheq"
 
 [[d1_databases]]
 binding = "WEDDING_DB"

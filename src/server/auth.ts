@@ -1,6 +1,5 @@
 import { Lucia } from "lucia";
 import { D1Adapter } from "@lucia-auth/adapter-sqlite";
-import { loginItems } from "../loginStore";
 import { TEXTBELT_API_KEY } from "astro:env/server";
 
 export class PhoneNumber {
