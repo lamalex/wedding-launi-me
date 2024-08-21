@@ -77,3 +77,8 @@ UPLOADTHING_APP_ID = "f5zzoaqheq"
 binding = "WEDDING_DB"
 database_name = "wedding-launi-me-production"
 database_id = "77b33bc0-b9a1-47f3-a7a9-2117d3eeba7c"
+
+[[d1_databases]]
+binding = "WEDDING_DB"
+database_name = "wedding-launi-me-production"
+database_id = "77b33bc0-b9a1-47f3-a7a9-2117d3eeba7c"
