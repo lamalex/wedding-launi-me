@@ -16,10 +16,7 @@ if (user === null) {
 
 <Layout title="Enjoy!"
     ><ViewTransitions />
-    <div
-        id="my-gallery"
-        class="grid grid-cols-1 py-10 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
-    >
+    <div id="my-gallery" class="grid grid-cols-3 gap-4">
         {
             files.files.map((file) => (
                 <a
@@ -34,7 +31,7 @@ if (user === null) {
                         loading="lazy"
                         decoding="async"
                         src={`https://utfs.io/a/${UPLOADTHING_APP_ID}/${file.key}`}
-                        class="absolute h-[250px] w-[300px] object-cover shadow"
+                        class="h-full w-auto object-cover shadow"
                     />
                 </a>
             ))
