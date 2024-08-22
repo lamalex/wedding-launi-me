@@ -5,7 +5,7 @@ import { twMerge } from "tailwind-merge";
 import type { ClassValue } from "clsx";
 import { useRef } from "react";
 
-export function InputOtp() {
+export function InputOtp(props: { redirectTarget: string }) {
   const formRef = useRef<HTMLFormElement>(null);
 
   return (
@@ -13,6 +13,7 @@ export function InputOtp() {
       <div>
         <p className="text-bold">Enter your code</p>
         <input type="hidden" name="step" value="otp" />
+        <input type="hidden" name="referer" value={props.redirectTarget} />
         <OTPInput
           id="otp"
           name="otp"

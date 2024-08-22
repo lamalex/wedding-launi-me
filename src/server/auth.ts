@@ -50,7 +50,6 @@ export async function sendOtp(
 
     const body = await res.json<{
       success: boolean;
-      textId: string;
       otp: string;
       error?: string;
     }>();
@@ -69,8 +68,6 @@ export async function sendOtp(
 
 export async function verifyOtp(otp: Otp, phone: PhoneNumber) {
   try {
-    console.log(`otp ${otp} phone ${phone}`);
-
     const params = new URLSearchParams({
       otp: otp.value(),
       userid: phone.value(),

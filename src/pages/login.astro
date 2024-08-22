@@ -13,6 +13,7 @@ export const prerender = false;
 const errors = { phone: "", otp: "" };
 const loginStore = loginItems.get()["login"];
 let formStep = loginStore?.phoneNumber?.value() ? "otp" : "phone";
+let redirectTarget = Astro.request.headers.get("x-redirect-to") ?? "/gallery";
 
 if (Astro.request.method === "POST") {
     try {
@@ -23,6 +24,9 @@ if (Astro.request.method === "POST") {
 
         if (formStep === "phone") {
             const phoneRaw = data.get("phone")?.toString();
+            redirectTarget =
+                data.get("referer")?.toString() ?? redirectTarget ?? "/gallery";
+
             if (!phoneRaw) {
                 errors.phone =
                     "You entered a jacked up phone number. Please enter a better phone number!";
@@ -54,6 +58,10 @@ if (Astro.request.method === "POST") {
             const otpSubmitted = data.get("step")?.toString();
             if (otpSubmitted) {
                 const otpRaw = data.get("otp")?.toString();
+                redirectTarget =
+                    data.get("referer")?.toString() ??
+                    redirectTarget ??
+                    "/gallery";
                 if (!otpRaw) {
                     errors.otp = "Yikes, you entered an empty code";
                 } else {
@@ -61,7 +69,6 @@ if (Astro.request.method === "POST") {
                         const phone = loginStore.phoneNumber;
                         const res = await verifyOtp(new Otp(otpRaw), phone);
                         if (res.success) {
-                            console.log("HUZZAH!");
                             const known = await db.query.user.findFirst({
                                 where: eq(userTable.phoneNumber, phone.value()),
                             });
@@ -93,7 +100,8 @@ if (Astro.request.method === "POST") {
                                     session.id,
                                 );
                                 Astro.locals.user = user;
-                                return Astro.redirect("/upload");
+
+                                return Astro.redirect(redirectTarget);
                             }
                         } else {
                             errors.otp = res.error ?? "Something went wrong";
@@ -134,6 +142,11 @@ if (Astro.request.method === "POST") {
                         </label>
                         <div class="relative w-full">
                             <input type="hidden" name="step" value="phone" />
+                            <input
+                                type="hidden"
+                                name="referer"
+                                value={redirectTarget}
+                            />
                             <input
                                 autocomplete="tel-national"
                                 type="tel"
@@ -178,7 +191,7 @@ if (Astro.request.method === "POST") {
     {
         formStep === "otp" && (
             <div class="max-w-sm mx-auto py-20">
-                <InputOtp client:load />
+                <InputOtp redirectTarget={redirectTarget} client:load />
 
                 {(errors.otp || loginItems.get()["login"]?.error) && (
                     <p

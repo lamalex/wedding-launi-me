@@ -14,7 +14,6 @@ export const onRequest = defineMiddleware(async (context, next) => {
   if (!sessionId) {
     locals.user = null;
     locals.session = null;
-    console.log(`"x-redirect-to": ${context.url.pathname}`);
     return context.rewrite(
       new Request(new URL("/login", context.url), {
         headers: {
