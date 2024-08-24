@@ -1,7 +1,12 @@
 import { initializeLucia } from "./server/auth";
 import { defineMiddleware } from "astro:middleware";
+import { BYPASS_AUTH } from "astro:env/server";
 
 export const onRequest = defineMiddleware(async (context, next) => {
+  if (BYPASS_AUTH) {
+    return next();
+  }
+
   const { locals, cookies } = context;
   const { WEDDING_DB } = locals.runtime.env;
   const lucia = initializeLucia(WEDDING_DB);

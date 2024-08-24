@@ -6,7 +6,7 @@ import { initializeLucia } from "../server/auth";
 import Layout from "../layouts/root.astro";
 import { PhoneNumber, Otp, sendOtp, verifyOtp } from "../server/auth";
 import { InputOtp } from "../components/otp";
-import { loginItems } from "../loginStore";
+import { loginItems } from "../store";
 
 export const prerender = false;
 

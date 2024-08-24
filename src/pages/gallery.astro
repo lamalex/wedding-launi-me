@@ -5,6 +5,7 @@ import Layout from "../layouts/root.astro";
 import { ViewTransitions } from "astro:transitions";
 import { utapi } from "../server/uploadthing.ts";
 import { UPLOADTHING_APP_ID } from "astro:env/server";
+import { ReactLightbox } from "../components/lightbox";
 
 const files = await utapi.listFiles();
 ---
@@ -17,41 +18,35 @@ const files = await utapi.listFiles();
     >
         {
             files.files.map((file) => (
-                <a
-                    href={`https://utfs.io/a/${UPLOADTHING_APP_ID}/${file.key}`}
-                    data-pswp-width="900"
-                    data-pswp-height="1600"
-                    class="contents"
-                >
-                    <img
-                        width="900"
-                        height="1600"
-                        loading="lazy"
-                        decoding="async"
-                        src={`https://utfs.io/a/${UPLOADTHING_APP_ID}/${file.key}`}
-                        class="h-[250px] w-[350px] object-cover shadow"
-                    />
-                </a>
+                <img
+                    loading="lazy"
+                    decoding="async"
+                    src={`https://utfs.io/a/${UPLOADTHING_APP_ID}/${file.key}`}
+                    class="gallery-image h-[250px] w-[350px] object-cover shadow"
+                />
             ))
         }
+        <ReactLightbox
+            client:load
+            slides={files.files.map((f) => {
+                return {
+                    src: `https://utfs.io/a/${UPLOADTHING_APP_ID}/${f.key}`,
+                };
+            })}
+        />
     </div>
     <script>
-        import "photoswipe/style.css";
-        import pswpModule from "photoswipe";
-        import PhotoSwipeLightbox from "photoswipe/lightbox";
+        import { isLightboxOpen, lightboxIndex } from "../lightbox-store";
 
-        const lightbox = new PhotoSwipeLightbox({
-            pswpModule,
-            children: "a",
-            gallery: "#my-gallery",
+        // Find all buttons with the `alert` class on the page.
+        const buttons = document.querySelectorAll("img.gallery-image");
+
+        // Handle clicks on each button.
+        buttons.forEach((button, key) => {
+            button.addEventListener("click", () => {
+                lightboxIndex.set(key);
+                isLightboxOpen.set(true);
+            });
         });
-
-        document.addEventListener(
-            "astro:page-load",
-            () => {
-                if (lightbox) lightbox.init();
-            },
-            { once: false },
-        );
     </script>
 </Layout>

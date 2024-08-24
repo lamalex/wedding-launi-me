@@ -26,6 +26,11 @@ export default defineConfig({
     serverIslands: true,
     env: {
       schema: {
+        BYPASS_AUTH: envField.boolean({
+          context: "server",
+          access: "public",
+          default: false,
+        }),
         TEXTBELT_API_KEY: envField.string({
           context: "server",
           access: "secret",
