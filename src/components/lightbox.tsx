@@ -1,8 +1,9 @@
 import { useStore } from '@nanostores/react';
 import { isLightboxOpen, lightboxIndex } from '../lightbox-store';
-
-
 import Lightbox from "yet-another-react-lightbox";
+import Zoom from "yet-another-react-lightbox/plugins/zoom";
+
+
 import "yet-another-react-lightbox/styles.css";
 
 export function ReactLightbox(props: { slides: { src: string }[] }) {
@@ -13,6 +14,7 @@ export function ReactLightbox(props: { slides: { src: string }[] }) {
     return (
         <>
             <Lightbox
+                plugins={[Zoom]}
                 open={$isLightboxOpen}
                 close={() => isLightboxOpen.set(false)}
                 slides={props.slides}
