@@ -11,8 +11,10 @@ if (user === null) {
 ---
 
 <Layout title="And for sharing your pictures with us">
-    <ImageUploader client:load client:only="react" />
-    <div class="text-4xl mt-28 w-full text-center hidden" id="message">
-        Thank you!<br />❤️ <span class="font-thin"> Alex & Meghan </span>
+    <div class="h-screen">
+        <ImageUploader client:load client:only="react" />
+        <div class="text-4xl mt-28 w-full text-center hidden" id="message">
+            Thank you!<br />❤️ <span class="font-thin"> Alex & Meghan </span>
+        </div>
     </div>
 </Layout>

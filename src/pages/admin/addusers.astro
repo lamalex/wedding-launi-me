@@ -1,0 +1,140 @@
+---
+export const prerender = false;
+
+import { drizzle } from "drizzle-orm/d1";
+import Layout from "../../layouts/root.astro";
+import { parse } from "csv-parse/sync";
+import { userTable } from "../../server/db/schema";
+import type { NewUser } from "../../server/db/schema";
+import { PhoneNumber } from "../../server/auth";
+import { TEXTBELT_API_KEY } from "astro:env/server";
+
+if (Astro.locals.user?.phoneNumber !== "6102911773") {
+    return new Response("Unauthorized", { status: 401 });
+}
+
+export async function sendWelcomeMsg(phone: PhoneNumber, Astro: any) {
+    try {
+        const message = `Hi! This is Alex & Meghan!
+Thank you for sharing our wedding day with us!
+We would love if you shared any pictures that you took.
+We've set up a little space for you to upload them here: ${new URL("/upload", Astro.request.url)}
+`;
+        const res = await fetch("https://textbelt.com/text", {
+            method: "post",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                phone: phone.value(),
+                message: message,
+                key: TEXTBELT_API_KEY,
+            }),
+        });
+
+        const body = await res.json<{
+            success: boolean;
+            quotaRemaining: number;
+            error?: string;
+        }>();
+
+        return { phoneNumber: phone, error: body.error };
+    } catch (err) {
+        let message = "There was an error sending the welcome message";
+        if (err instanceof Error) {
+            console.error(err);
+            message = err.message;
+        }
+
+        return { phoneNumber: phone, error: message };
+    }
+}
+
+// Helper function to validate User object
+const isValidUser = (obj: any): obj is NewUser => {
+    return typeof obj.phoneNumber === "string";
+};
+
+const parseCsv = (csvContent: string): NewUser[] => {
+    const records = parse(csvContent, {
+        columns: true,
+        skip_empty_lines: true,
+    });
+
+    if (typeof records.filter === "function") {
+        return records.filter(isValidUser);
+    }
+
+    throw new Error("Invalid CSV data");
+};
+
+const bulkAddUsers = async (db: D1Database, usersData: NewUser[]) => {
+    try {
+        const drizzledb = drizzle(db, {
+            schema: { user: userTable },
+        });
+        await drizzledb.insert(userTable).values(usersData);
+        return true;
+    } catch (error) {
+        console.error("Error adding users:", error);
+        return false;
+    }
+};
+
+let message = "";
+if (Astro.request.method === "POST") {
+    const formData = await Astro.request.formData();
+    const csvFile = formData.get("users")?.valueOf();
+
+    if (csvFile instanceof File) {
+        const csvContent = await csvFile.text();
+        const validUsers = parseCsv(csvContent);
+        if (validUsers.length > 0) {
+            const success = await bulkAddUsers(
+                Astro.locals.runtime.env.WEDDING_DB,
+                validUsers,
+            );
+            let resArr = await Promise.allSettled(
+                validUsers.map((user) =>
+                    sendWelcomeMsg(new PhoneNumber(user.phoneNumber), Astro),
+                ),
+            );
+
+            for (const res of resArr) {
+                if (res.status === "rejected") {
+                    console.error(res.reason);
+                }
+            }
+
+            message = success
+                ? `Successfully added ${validUsers.length} users.`
+                : "Error occurred while adding users.";
+        } else {
+            message = "No valid users found in the CSV file.";
+        }
+    }
+}
+---
+
+<Layout title="Add Users">
+    <div class="flex flex-col items-center justify-center h-screen">
+        <h1 class="text-4xl font-bold">Add Users</h1>
+        <form
+            method="POST"
+            enctype="multipart/form-data"
+            class="flex flex-col items-center justify-center mt-4"
+        >
+            <input
+                name="users"
+                type="file"
+                accept=".csv"
+                class="w-80 p-2"
+                required
+            />
+            <button
+                type="submit"
+                class="bg-blue-500 text-white rounded-md p-2 w-80 mt-4"
+                >Add Users</button
+            >
+        </form>
+        {message && <p>{message}</p>}
+    </div></Layout
+>

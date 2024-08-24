@@ -129,80 +129,92 @@ if (Astro.request.method === "POST") {
 ---
 
 <Layout title="Thank you for sharing this day with us">
-    {
-        formStep === "phone" && (
-            <form action="/login" method="POST" class="max-w-sm mx-auto py-20">
-                <div>
-                    <div class="flex items-center">
-                        <label
-                            for="phone-input"
-                            class="mb-2 text-sm font-medium text-gray-900 sr-only"
-                        >
-                            Phone number:
-                        </label>
-                        <div class="relative w-full">
-                            <input type="hidden" name="step" value="phone" />
-                            <input
-                                type="hidden"
-                                name="referer"
-                                value={redirectTarget}
-                            />
-                            <input
-                                autocomplete="tel-national"
-                                type="tel"
-                                id="phone-input"
-                                name="phone"
-                                aria-describedby="helper-text-explanation"
-                                class="block p-2.5 w-full z-20 text-sm text-gray-900 bg-gray-50 rounded-lg border-s-0 border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                                pattern="[0-9]{3}[0-9]{3}[0-9]{4}"
-                                placeholder="1234567890"
-                                required
-                            />
+    <div class="h-screen">
+        {
+            formStep === "phone" && (
+                <form
+                    action="/login"
+                    method="POST"
+                    class="max-w-sm mx-auto py-20"
+                >
+                    <div>
+                        <div class="flex items-center">
+                            <label
+                                for="phone-input"
+                                class="mb-2 text-sm font-medium text-gray-900 sr-only"
+                            >
+                                Phone number:
+                            </label>
+                            <div class="relative w-full">
+                                <input
+                                    type="hidden"
+                                    name="step"
+                                    value="phone"
+                                />
+                                <input
+                                    type="hidden"
+                                    name="referer"
+                                    value={redirectTarget}
+                                />
+                                <input
+                                    autocomplete="tel-national"
+                                    type="tel"
+                                    id="phone-input"
+                                    name="phone"
+                                    aria-describedby="helper-text-explanation"
+                                    class="block p-2.5 w-full z-20 text-sm text-gray-900 bg-gray-50 rounded-lg border-s-0 border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                                    pattern="[0-9]{3}[0-9]{3}[0-9]{4}"
+                                    placeholder="1234567890"
+                                    required
+                                />
+                            </div>
                         </div>
+                        {(errors.phone || loginItems.get()["login"]?.error) && (
+                            <p
+                                id="error-text-explanation"
+                                class="mt-2 mb-4 text-sm text-red-800 font-bold"
+                            >
+                                Uh-oh!{" "}
+                                {errors.phone ||
+                                    loginItems.get()["login"]?.error ||
+                                    ""}
+                            </p>
+                        )}
+                        <p
+                            id="helper-text-explanation"
+                            class="mt-2 mb-4 text-sm text-gray-500 dark:text-gray-700"
+                        >
+                            We will send you a text message with a verification
+                            code.
+                        </p>
+                        <button
+                            type="submit"
+                            class="text-white w-full bg-pink-200 hover:bg-pink-300 focus:ring-4 focus:ring-pink-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 focus:outline-none"
+                        >
+                            Text a login code
+                        </button>
                     </div>
-                    {(errors.phone || loginItems.get()["login"]?.error) && (
+                </form>
+            )
+        }
+        {
+            formStep === "otp" && (
+                <div class="max-w-sm mx-auto py-20">
+                    <InputOtp redirectTarget={redirectTarget} client:load />
+
+                    {(errors.otp || loginItems.get()["login"]?.error) && (
                         <p
                             id="error-text-explanation"
                             class="mt-2 mb-4 text-sm text-red-800 font-bold"
                         >
                             Uh-oh!{" "}
-                            {errors.phone ||
+                            {errors.otp ||
                                 loginItems.get()["login"]?.error ||
                                 ""}
                         </p>
                     )}
-                    <p
-                        id="helper-text-explanation"
-                        class="mt-2 mb-4 text-sm text-gray-500 dark:text-gray-700"
-                    >
-                        We will send you a text message with a verification
-                        code.
-                    </p>
-                    <button
-                        type="submit"
-                        class="text-white w-full bg-pink-200 hover:bg-pink-300 focus:ring-4 focus:ring-pink-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 focus:outline-none"
-                    >
-                        Text a login code
-                    </button>
                 </div>
-            </form>
-        )
-    }
-    {
-        formStep === "otp" && (
-            <div class="max-w-sm mx-auto py-20">
-                <InputOtp redirectTarget={redirectTarget} client:load />
-
-                {(errors.otp || loginItems.get()["login"]?.error) && (
-                    <p
-                        id="error-text-explanation"
-                        class="mt-2 mb-4 text-sm text-red-800 font-bold"
-                    >
-                        Uh-oh!{" "}
-                        {errors.otp || loginItems.get()["login"]?.error || ""}
-                    </p>
-                )}
-            </div>
-        )
-    }
+            )
+        }
+    </div>
 </Layout>
