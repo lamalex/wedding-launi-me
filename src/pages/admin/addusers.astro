@@ -3,7 +3,7 @@ export const prerender = false;
 
 import { drizzle } from "drizzle-orm/d1";
 import Layout from "../../layouts/root.astro";
-import { parse } from "csv-parse/sync";
+import { parse } from "csv-parse/browser/esm";
 import { userTable } from "../../server/db/schema";
 import type { NewUser } from "../../server/db/schema";
 import { PhoneNumber } from "../../server/auth";
@@ -53,19 +53,6 @@ const isValidUser = (obj: any): obj is NewUser => {
     return typeof obj.phoneNumber === "string";
 };
 
-const parseCsv = (csvContent: string): NewUser[] => {
-    const records = parse(csvContent, {
-        columns: true,
-        skip_empty_lines: true,
-    });
-
-    if (typeof records.filter === "function") {
-        return records.filter(isValidUser);
-    }
-
-    throw new Error("Invalid CSV data");
-};
-
 const bulkAddUsers = async (db: D1Database, usersData: NewUser[]) => {
     try {
         const drizzledb = drizzle(db, {
@@ -85,15 +72,47 @@ if (Astro.request.method === "POST") {
     const csvFile = formData.get("users")?.valueOf();
 
     if (csvFile instanceof File) {
-        const csvContent = await csvFile.text();
-        const validUsers = parseCsv(csvContent);
-        if (validUsers.length > 0) {
+        const csvStream = csvFile.stream();
+        const records: { phoneNumber: string }[] = [];
+        const parser = parse({
+            columns: true,
+            skip_empty_lines: true,
+        });
+
+        parser.on("readable", () => {
+            let record;
+            while ((record = parser.read())) {
+                if (isValidUser(record)) {
+                    records.push(record);
+                } else {
+                    console.warn("Invalid user record:", record);
+                }
+            }
+        });
+        const decoder = new TextDecoder();
+
+        for await (const chunk of csvStream) {
+            // Decode the file data as a UTF-8 string, and send it to the CSV parser.
+            const ready = parser.write(decoder.decode(chunk));
+
+            // If the CSV parser is backed up, block it emits a `drain` event, which
+            // means it is ready to receive more data.
+            if (!ready) {
+                parser.once("drain", () => {});
+            }
+        }
+
+        parser.end();
+        console.log(records);
+
+        // const validUsers = parseCsv(csvContent);
+        if (records.length > 0) {
             const success = await bulkAddUsers(
                 Astro.locals.runtime.env.WEDDING_DB,
-                validUsers,
+                records,
             );
             let resArr = await Promise.allSettled(
-                validUsers.map((user) =>
+                records.map((user) =>
                     sendWelcomeMsg(new PhoneNumber(user.phoneNumber), Astro),
                 ),
             );
@@ -105,7 +124,7 @@ if (Astro.request.method === "POST") {
             }
 
             message = success
-                ? `Successfully added ${validUsers.length} users.`
+                ? `Successfully added ${records.length} users.`
                 : "Error occurred while adding users.";
         } else {
             message = "No valid users found in the CSV file.";
