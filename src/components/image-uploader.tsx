@@ -15,7 +15,7 @@ export function ImageUploader() {
     <UploadButton
       className="ut-button:bg-pink-200 ut-button:ut-readying:bg-pink-200/50 ut-button:ut-uploading:bg-pink-200 pt-52"
       endpoint="imageUploader"
-      onClientUploadComplete={(_) => {
+      onClientUploadComplete={() => {
         const messageEl = document.getElementById("message");
         if (!messageEl) {
           console.error("message element is missing");

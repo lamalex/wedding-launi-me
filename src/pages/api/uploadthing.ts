@@ -1,14 +1,33 @@
 export const prerender = false;
 
 import { createRouteHandler } from "uploadthing/server";
-import { ourFileRouter } from "../../server/uploadthing";
+import { createFileRouter } from "../../server/uploadthing";
+import { UPLOADTHING_APP_ID, UPLOADTHING_SECRET } from "astro:env/server";
+import { type APIContext } from "astro";
 
-// Export routes for Next App Router
-export const { GET, POST } = createRouteHandler({
-  router: ourFileRouter,
-  config: {
-    logLevel: "trace",
-    uploadthingId: import.meta.env.UPLOADTHING_APP_ID,
-    uploadthingSecret: import.meta.env.UPLOADTHING_SECRET,
-  },
-});
+function handler(context: APIContext) {
+  const handlers = createRouteHandler({
+    router: createFileRouter(context),
+    config: {
+      logLevel: "trace",
+      uploadthingId: UPLOADTHING_APP_ID,
+      uploadthingSecret: UPLOADTHING_SECRET,
+    },
+  });
+
+  if (context.request.method === "GET") {
+    return handlers.GET(context);
+  } else if (context.request.method === "POST") {
+    return handlers.POST(context);
+  } else {
+    return new Response("Method not allowed", { status: 405 });
+  }
+}
+
+export async function GET(context: APIContext) {
+  return handler(context);
+}
+
+export async function POST(context: APIContext) {
+  return handler(context);
+}

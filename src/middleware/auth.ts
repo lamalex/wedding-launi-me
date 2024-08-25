@@ -11,7 +11,9 @@ export async function auth(context: APIContext, next: MiddlewareNext) {
     const { WEDDING_DB } = locals.runtime.env;
     const lucia = initializeLucia(WEDDING_DB);
 
-    if (context.url.pathname === "/login") {
+    const unprotectedPaths = new Set(["/login", "/api/uploadthing"]);
+
+    if (unprotectedPaths.has(context.url.pathname)) {
         return next();
     }
 

@@ -1,32 +1,37 @@
 import { createUploadthing, UTApi, type FileRouter } from "uploadthing/server";
+import { initializeLucia } from "./auth";
 import { UPLOADTHING_SECRET } from "astro:env/server";
+import type { APIContext } from "astro";
 
 const f = createUploadthing();
 
-const auth = (_: Request) => ({ id: "fakeId" }); // Fake auth function
-
 // FileRouter for your app, can contain multiple FileRoutes
-export const ourFileRouter = {
-  // Define as many FileRoutes as you like, each with a unique routeSlug
-  imageUploader: f({ image: { maxFileSize: "2GB", maxFileCount: 1000 } })
-    // Set permissions and file types for this FileRoute
-    .middleware(async ({ req }) => {
-      // This code runs on your server before upload
-      const user = auth(req);
+export function createFileRouter(context: APIContext): FileRouter {
+  return {
+    imageUploader: f({ image: { maxFileSize: "2GB", maxFileCount: 1000 } })
+      // Set permissions and file types for this FileRoute
+      .middleware(async ({ req }) => {
+        console.log(`middleware, ${JSON.stringify(req)}`);
+        const lucia = initializeLucia(context.locals.runtime.env.WEDDING_DB);
 
-      // If you throw, the user will not be able to upload
-      if (!user) throw new Error("Unauthorized");
+        const sessionId = context.cookies.get(lucia.sessionCookieName)?.value ?? null;
+        if (!sessionId) throw new Error("Unauthorized");
 
-      // Whatever is returned here is accessible in onUploadComplete as `metadata`
-      return { userId: user.id };
-    })
-    .onUploadComplete(async ({ metadata }) => {
-      console.log(`upload complete: ${JSON.stringify(metadata)}`);
-      // This code RUNS ON YOUR SERVER after upload
-      // !!! Whatever is returned here is sent to the clientside `onClientUploadComplete` callback
-      return { uploadedBy: metadata.userId };
-    }),
-} satisfies FileRouter;
+        const { user } = await lucia.validateSession(sessionId);
+        if (!user) throw new Error("Unauthorized");
+
+        // Whatever is returned here is accessible in onUploadComplete as `metadata`
+        return { userId: user.id };
+      })
+      .onUploadComplete(async ({ metadata }) => {
+        // console.log(`upload complete: ${JSON.stringify(metadata)}`);
+        // This code RUNS ON YOUR SERVER after upload
+        // !!! Whatever is returned here is sent to the clientside `onClientUploadComplete` callback
+        return { uploadedBy: metadata.userId };
+      }),
+  }
+}
+
 
 export const utapi = new UTApi({
   apiKey: UPLOADTHING_SECRET,
@@ -35,5 +40,3 @@ export const utapi = new UTApi({
     return fetch(url, init);
   },
 });
-
-export type OurFileRouter = typeof ourFileRouter;
