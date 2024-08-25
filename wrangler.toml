@@ -69,8 +69,8 @@ database_id = "1b6c65fc-3b2d-40d4-afb2-afa5943ba801"
 
 
 [[env.preview.services]]
-binding = "axiom.js"
-service = "axiom"
+binding = "axiom"
+service = "axiom.js"
 entrypoint = "axiom"
 
 
