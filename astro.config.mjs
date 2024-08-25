@@ -9,6 +9,7 @@ export default defineConfig({
   output: "hybrid",
   adapter: cloudflare({
     mode: "directory",
+    imageService: 'cloudflare',
     functionPerRoute: true,
     platformProxy: {
       enabled: true,
@@ -18,6 +19,9 @@ export default defineConfig({
     checkOrigin: true,
   },
   vite: {
+    ssr: {
+      external: ['node:buffer']
+    },
     define: {
       "process.env": process.env,
     },

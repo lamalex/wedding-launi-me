@@ -60,11 +60,18 @@ mode = "smart"
 BUN_VERSION = "1.1.24"
 ENVIRONMENT = "preview"
 UPLOADTHING_APP_ID = "0lvautmi1u"
+AXIOM_DATASET = 'wedding-launi-me-dev'
 
 [[env.preview.d1_databases]]
 binding = "WEDDING_DB"
 database_name = "wedding-launi-me-preview"
 database_id = "1b6c65fc-3b2d-40d4-afb2-afa5943ba801"
+
+
+[[env.preview.services]]
+binding = "axiom"
+service = "axiom"
+entrypoint = "axiom"
 
 
 ######## PRODUCTION environment config ########
