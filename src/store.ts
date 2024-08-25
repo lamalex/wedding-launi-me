@@ -1,5 +1,5 @@
 
-import { atom, map } from "nanostores";
+import { map } from "nanostores";
 import { PhoneNumber } from "./server/auth";
 
 export type LoginItem = {

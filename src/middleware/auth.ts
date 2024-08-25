@@ -1,8 +1,8 @@
-
+import { type APIContext, type MiddlewareNext } from "astro";
 import { initializeLucia } from "../server/auth";
 import { BYPASS_AUTH } from "astro:env/server";
 
-export async function auth(context, next) {
+export async function auth(context: APIContext, next: MiddlewareNext) {
     if (BYPASS_AUTH) {
         return next();
     }
