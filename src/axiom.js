@@ -121,7 +121,7 @@ async function handleRequest(request, env, context) {
     return response
 }
 
-export const axiom = {
+export default {
     async fetch(req, env, context) {
         context.passThroughOnException()
 

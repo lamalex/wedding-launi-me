@@ -1,0 +1,6 @@
+name = "little-mouse-7c21"
+main = "src/axiom.js"
+compatibility_date = "2023-08-23"
+
+[vars]
+AXIOM_DATASET = "wedding-launi-me-dev"
