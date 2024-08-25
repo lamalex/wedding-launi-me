@@ -12,6 +12,10 @@ function handler(context: APIContext) {
       logLevel: "trace",
       uploadthingId: UPLOADTHING_APP_ID,
       uploadthingSecret: UPLOADTHING_SECRET,
+      fetch: (url, init) => {
+        if (init && "cache" in init) delete init.cache;
+        return fetch(url, init);
+      },
     },
   });
 
