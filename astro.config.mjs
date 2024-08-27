@@ -47,6 +47,10 @@ export default defineConfig({
           context: "server",
           access: "secret",
         }),
+        AXIOM_CLIENT_TOKEN: envField.string({
+          context: "client",
+          access: "public",
+        }),
       },
     },
   },

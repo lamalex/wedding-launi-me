@@ -4,6 +4,7 @@ interface Props {
 }
 
 const { title } = Astro.props;
+const { user } = Astro.locals;
 ---
 
 <!doctype html>
@@ -23,18 +24,84 @@ const { title } = Astro.props;
             <main
                 class="bg-white bg-opacity-60 sm:mx-52 pt-10 px-10 mx-10 h-full"
             >
-                <nav class="flex">
-                    <a
-                        class="text-center text-white w-full bg-pink-200 hover:bg-pink-300 focus:ring-4 focus:ring-pink-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 mx-auto focus:outline-none"
-                        href="/upload">Upload</a
-                    >
-                    <a
-                        class="text-center text-white w-full bg-pink-200 hover:bg-pink-300 focus:ring-4 focus:ring-pink-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 mx-auto focus:outline-none"
-                        href="/gallery">Gallery</a
-                    >
-                </nav>
-                <slot />
+                <astro-meta data-user={user?.phoneNumber}>
+                    <nav class="flex">
+                        <a
+                            class="meta-track-click text-center text-white w-full bg-pink-200 hover:bg-pink-300 focus:ring-4 focus:ring-pink-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 mx-auto focus:outline-none"
+                            href="/upload">Upload</a
+                        >
+                        <a
+                            class="meta-track-click text-center text-white w-full bg-pink-200 hover:bg-pink-300 focus:ring-4 focus:ring-pink-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 mx-auto focus:outline-none"
+                            href="/gallery">Gallery</a
+                        >
+                    </nav>
+
+                    <slot />
+                </astro-meta>
             </main>
         </div>
+        <script>
+            import { AXIOM_CLIENT_TOKEN } from "astro:env/client";
+            import { Axiom } from "@axiomhq/js";
+
+            class AstroMeta extends HTMLElement {
+                constructor() {
+                    super();
+
+                    const axiom = new Axiom({
+                        orgId: "dirigimus-qt06",
+                        token: AXIOM_CLIENT_TOKEN,
+                    });
+
+                    // Read the message from the data attribute.
+                    const userPhone = this.dataset.user;
+                    const data = this.dataset.extra;
+                    const track =
+                        document.querySelectorAll(".meta-track-click");
+
+                    track.forEach((tracker, key) => {
+                        tracker.addEventListener("click", async (event) => {
+                            console.log("clicked!");
+                            const clickEvent: {
+                                action: "click";
+                                key: number;
+                                user: string | undefined;
+                                target: any;
+                                data: any;
+                            } = {
+                                action: "click",
+                                key: key,
+                                user: userPhone,
+                                target: null,
+                                data: data,
+                            };
+                            let finalizeFz = () => {};
+                            if (tracker instanceof HTMLAnchorElement) {
+                                event.preventDefault();
+                                clickEvent.target = {
+                                    textContent: tracker.textContent,
+                                    href: tracker.href,
+                                };
+
+                                finalizeFz = () => {
+                                    window.location.href = tracker.href;
+                                };
+                            } else if (tracker instanceof HTMLImageElement) {
+                                clickEvent.target = {
+                                    src: tracker.src,
+                                };
+                            }
+
+                            axiom.ingest("wedding-launi-me-dev", [clickEvent]);
+                            await axiom.flush();
+
+                            finalizeFz();
+                        });
+                    });
+                }
+            }
+
+            customElements.define("astro-meta", AstroMeta);
+        </script>
     </body>
 </html>
